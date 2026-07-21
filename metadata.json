@@ -1,0 +1,5 @@
+{
+  "name": "모바일 팩토리",
+  "description": "모바일 비즈니스 플랫폼 모바일 팩토리",
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

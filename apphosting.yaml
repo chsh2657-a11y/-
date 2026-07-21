@@ -1,0 +1,28 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+  maxInstances: 1
+env:
+  - variable: FIREBASE_PROJECT_ID
+    # This is a build-time secret that is used to initialize the Firebase Admin SDK.
+    # It is automatically populated by App Hosting.
+    # DO NOT edit this value.
+    secret: firebase-project-id
+  - variable: FIREBASE_CLIENT_EMAIL
+    # This is a build-time secret that is used to initialize the Firebase Admin SDK.
+    # It is automatically populated by App Hosting.
+    # DO NOT edit this value.
+    secret: firebase-client-email
+  - variable: FIREBASE_PRIVATE_KEY
+    # This is a build-time secret that is used to initialize the Firebase Admin SDK.
+    # It is automatically populated by App Hosting.
+    # DO NOT edit this value.
+    secret: firebase-private-key
+  - variable: JWT_SECRET
+    # This is a build-time secret that is used to initialize the Firebase Admin SDK.
+    # It is automatically populated by App Hosting.
+    # DO NOT edit this value.
+    secret: jwt-secret

@@ -1,0 +1,21 @@
+{
+  "name": "모바일 팩토리",
+  "short_name": "모바일팩토리",
+  "description": "모바일 업무를 수행하고 리워드를 받는 애플리케이션입니다.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFC857",
+  "theme_color": "#FFC857",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

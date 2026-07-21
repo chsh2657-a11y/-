@@ -1,0 +1,126 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // 가입 시 휴대폰 선점
+    match /phones/{phone} {
+      allow read: if false;
+      allow create: if signedIn()
+        && !exists(/databases/$(database)/documents/phones/$(phone))
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // 닉네임 선점: 존재여부 확인용 read 허용
+    match /nicknames/{name} {
+      allow read: if true;
+      allow create: if signedIn()
+        && !exists(/databases/$(database)/documents/nicknames/$(name))
+        && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // 추천 아이디(중복 방지 락): refCodes/{refIdLower} -> { uid }
+    match /refCodes/{rid} {
+      allow read: if true;
+      allow create: if signedIn()
+        && !exists(/databases/$(database)/documents/refCodes/$(rid))
+        && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // 유저 프로필(닉네임은 자유롭게 수정 가능)
+    match /users/{uid} {
+      allow read: if isOwner(uid) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow list: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+
+      allow create: if isOwner(uid)
+        && request.resource.data.points == 0
+        && request.resource.data.withdrawableAmount == 0;
+      
+      allow update: if isOwner(uid)
+        && !(request.resource.data.diff(resource.data).changedKeys()
+              .hasAny(['points', 'withdrawableAmount', 'cumulativeEarnings', 'cumulativeWithdrawals', 'isAdmin']));
+    }
+
+     match /branches/{branchId} {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /ranks/{rankId} {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /advertisements/{adId} {
+      allow read: if signedIn();
+      allow create, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    match /products/{productId} {
+      allow read: if signedIn();
+      allow create, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /challenges/{challengeId} {
+      allow read: if signedIn();
+       allow create, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /challengeParticipants/{participantId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+    }
+    
+    match /certifications/{certId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+    }
+
+    match /communityPosts/{postId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update, delete: if signedIn() && (resource.data.authorId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true);
+    }
+    
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /withdrawalRequests/{reqId} {
+      allow read: if isOwner(resource.data.userId) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      allow create: if signedIn();
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /atomyCenterMissions/{missionId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    match /healthReports/{reportId} {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+        allow create: if signedIn();
+    }
+    
+    match /chatRooms/{chatRoomId} {
+      allow read, write: if request.auth.uid in resource.data.participants;
+    }
+    
+    match /chatRooms/{chatRoomId}/messages/{messageId} {
+      allow read: if request.auth.uid in get(/databases/$(database)/documents/chatRooms/$(chatRoomId)).data.participants;
+      allow create: if request.auth.uid == request.resource.data.senderId;
+    }
+  }
+}
