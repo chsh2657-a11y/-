@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --font-inter: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+
+    --background: 48 33% 96%;
+    --foreground: 30 6% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 6% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 30 6% 10%;
+    --primary: 40 100% 67%;
+    --primary-foreground: 30 20% 12%;
+    --secondary: 45 30% 92%;
+    --secondary-foreground: 30 6% 15%;
+    --muted: 45 20% 93%;
+    --muted-foreground: 30 4% 38%;
+    --accent: 19 100% 65%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 12% 87%;
+    --input: 40 12% 84%;
+    --ring: 40 100% 55%;
+    --radius: 0.75rem;
+
+    /* 차트 / 증감 표시 */
+    --series-1: #2a78d6;
+    --series-1-soft: #9ec5f4;
+    --good: #0f7a3a;
+    --bad: #c62828;
+    --warn-bg: #fff6dc;
+    --warn-border: #f1d27a;
+    --warn-text: #6b4e00;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --background: 40 4% 8%;
+      --foreground: 45 15% 93%;
+      --card: 40 3% 12%;
+      --card-foreground: 45 15% 93%;
+      --popover: 40 3% 12%;
+      --popover-foreground: 45 15% 93%;
+      --primary: 40 95% 62%;
+      --primary-foreground: 30 20% 10%;
+      --secondary: 40 3% 18%;
+      --secondary-foreground: 45 15% 93%;
+      --muted: 40 3% 17%;
+      --muted-foreground: 45 6% 68%;
+      --border: 40 3% 22%;
+      --input: 40 3% 26%;
+
+      --series-1: #3987e5;
+      --series-1-soft: #184f95;
+      --good: #4cc27a;
+      --bad: #ff7b7b;
+      --warn-bg: #2d2610;
+      --warn-border: #6b5414;
+      --warn-text: #f3d98a;
+    }
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+}
