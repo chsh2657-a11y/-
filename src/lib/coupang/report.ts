@@ -102,7 +102,8 @@ export async function buildMonthReport(params: {
     );
   }
 
-  const oldestFetch = Math.min(...results.map((r) => r.fetchedAt));
+  // 화면의 "데이터 기준" 시각 = 선택한 달 데이터(요약·주문·취소)를 가져온 시각
+  const oldestFetch = Math.min(commission.fetchedAt, orders.fetchedAt, cancels.fetchedAt);
   return {
     month,
     start: range.start,
@@ -120,7 +121,7 @@ export async function buildMonthReport(params: {
     reconciliation: recon,
     meta: {
       fetchedAt: new Date(Number.isFinite(oldestFetch) ? oldestFetch : Date.now()).toISOString(),
-      fromCache: results.every((r) => r.fromCache),
+      fromCache: [commission, orders, cancels].every((r) => r.fromCache),
       stale: results.some((r) => r.stale),
       warnings: [...new Set(warnings)],
       apiCallsLastHour: await apiCallsLastHour(),
