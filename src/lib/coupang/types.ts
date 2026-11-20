@@ -149,10 +149,12 @@ export interface MonthReport {
   byCategory: GroupRow[];
   byProduct: GroupRow[];
   trend: MonthSummary[];
+  /** 일별 요약 vs 주문·취소 상세 비교 (상세가 늦게 반영된 날 확인용) */
   reconciliation: {
     summaryCommission: number;
     detailCommission: number;
     diff: number;
+    dates: Array<{ date: string; summaryCommission: number; detailCommission: number; diff: number }>;
   };
   meta: {
     fetchedAt: string;

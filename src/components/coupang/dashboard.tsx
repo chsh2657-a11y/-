@@ -471,9 +471,11 @@ function Empty({ children }: { children: React.ReactNode }) {
 function DetailTable({ rows, report }: { rows: DetailRow[]; report: MonthReport }) {
   if (!rows.length) return <Empty>이 기간에 주문·취소 내역이 없습니다.</Empty>;
   const t = report.totals;
+  // 표에 보이는 상세 행의 합계 (상세가 늦게 반영되면 일별 요약 합계보다 작을 수 있음)
   const sumQty = rows.reduce((a, r) => a + r.quantity, 0);
-  const sumGmv = t.orderGmv + t.cancelGmv;
-  const sumCommission = t.orderCommission + t.cancelCommission;
+  const sumGmv = rows.reduce((a, r) => a + r.gmv, 0);
+  const sumCommission = rows.reduce((a, r) => a + r.commission, 0);
+  const pending = report.reconciliation.diff;
   return (
     <>
       {/* 모바일: 카드 목록 */}
@@ -584,6 +586,11 @@ function DetailTable({ rows, report }: { rows: DetailRow[]; report: MonthReport 
         </tfoot>
       </table>
     </div>
+      {Math.abs(pending) >= 1 ? (
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          일별 요약 기준 순수익 {won(t.netCommission)} 중 {won(pending)}은 쿠팡 주문 상세 리포트에 아직 반영되지 않아 위 목록에 없습니다.
+        </p>
+      ) : null}
     </>
   );
 }

@@ -87,12 +87,18 @@ export async function buildMonthReport(params: {
   });
 
   // 3) 계산
-  const totals = computeTotals(commission.rows, orders.rows, cancels.rows);
+  const totals = computeTotals(commission.rows, cancels.rows);
   const recon = reconcile(commission.rows, orders.rows, cancels.rows);
-  if (Math.abs(recon.diff) >= 1) {
+  if (recon.dates.length) {
+    const fmt = (n: number) => `${Math.round(n).toLocaleString('ko-KR')}원`;
+    const list = recon.dates
+      .map((d) => `${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8, 10))} ${d.diff > 0 ? '+' : ''}${fmt(d.diff)}`)
+      .join(', ');
     warnings.push(
-      `일별 수익 요약 합계와 주문·취소 상세 합계가 ${Math.round(recon.diff).toLocaleString('ko-KR')}원 차이 납니다. ` +
-        '취소 반영 시점 차이이거나 데이터 반영이 지연된 것일 수 있습니다. 수익 합계는 일별 요약 기준입니다.',
+      `쿠팡 주문 상세 리포트에 아직 반영되지 않은 실적이 있습니다 (${list}). ` +
+        `수익·수익률 합계는 일별 요약 기준(${fmt(recon.summaryCommission)})이고, ` +
+        `실적 상세·카테고리·상품별 표에는 상세가 반영된 ${fmt(recon.detailCommission)}만 표시됩니다. ` +
+        '상세가 반영되면 새로고침 시 자동으로 채워집니다.',
     );
   }
 

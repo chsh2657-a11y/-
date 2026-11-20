@@ -36,17 +36,22 @@ const sum = <T>(rows: T[], pick: (r: T) => number) => rows.reduce((acc, r) => ac
 /** 부동소수 오차 정리 (원 단위 이하 0.001 반올림) */
 const clean = (n: number) => Math.round(n * 1000) / 1000;
 
-export function computeTotals(commission: CommissionRow[], orders: OrderRow[], cancels: CancelRow[]): Totals {
+/**
+ * 합계는 일별 수익 요약(commission 리포트)을 기준으로 합니다.
+ * 주문 상세(orders 리포트)는 요약보다 늦게 반영되는 경우가 있어서(실측: 전날 주문이 요약에만 있음)
+ * 취소 전 금액은 "순 금액 + 취소 금액"으로 계산해 숫자끼리 어긋나지 않게 합니다.
+ */
+export function computeTotals(commission: CommissionRow[], cancels: CancelRow[]): Totals {
   const clicks = sum(commission, (r) => r.click);
   const orderCount = sum(commission, (r) => r.order);
   const cancelCount = sum(commission, (r) => r.cancel);
   const netGmv = clean(sum(commission, (r) => r.gmv));
   const netCommission = clean(sum(commission, (r) => r.commission));
 
-  const orderGmv = clean(sum(orders, (r) => r.gmv));
   const cancelGmv = clean(sum(cancels, (r) => r.gmv));
-  const orderCommission = clean(sum(orders, (r) => r.commission));
   const cancelCommission = clean(sum(cancels, (r) => r.commission));
+  const orderGmv = clean(netGmv - cancelGmv);
+  const orderCommission = clean(netCommission - cancelCommission);
 
   return {
     clicks,
@@ -223,9 +228,29 @@ export function computeTrend(months: MonthInput[]): MonthSummary[] {
   return out;
 }
 
-/** 일별 요약 합계 vs 주문/취소 상세 합계 (차이가 크면 상세 데이터 누락 가능성) */
+/** 일별 요약 합계 vs 주문/취소 상세 합계 — 날짜별로 비교해 상세가 아직 반영되지 않은 날을 찾습니다 */
 export function reconcile(commission: CommissionRow[], orders: OrderRow[], cancels: CancelRow[]) {
+  const byDate = new Map<string, { summary: number; detail: number }>();
+  const at = (date: string) => {
+    let v = byDate.get(date);
+    if (!v) byDate.set(date, (v = { summary: 0, detail: 0 }));
+    return v;
+  };
+  commission.forEach((r) => (at(r.date).summary += r.commission));
+  orders.forEach((r) => (at(r.date).detail += r.commission));
+  cancels.forEach((r) => (at(r.date).detail += r.commission));
+
+  const dates = [...byDate.entries()]
+    .map(([date, v]) => ({
+      date,
+      summaryCommission: clean(v.summary),
+      detailCommission: clean(v.detail),
+      diff: clean(v.summary - v.detail),
+    }))
+    .filter((d) => Math.abs(d.diff) >= 1)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
   const summaryCommission = clean(sum(commission, (r) => r.commission));
   const detailCommission = clean(sum(orders, (r) => r.commission) + sum(cancels, (r) => r.commission));
-  return { summaryCommission, detailCommission, diff: clean(summaryCommission - detailCommission) };
+  return { summaryCommission, detailCommission, diff: clean(summaryCommission - detailCommission), dates };
 }
